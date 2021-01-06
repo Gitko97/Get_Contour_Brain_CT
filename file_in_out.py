@@ -20,8 +20,7 @@ class FileInOut(object):
     def save(self, file_paths, dicom_files):
         print(file_paths)
         for path, file in zip(file_paths, dicom_files):
-            new_file_path = path[0] + "/Croped"
+            new_file_path = path[0] + "_Croped"
             if not os.path.exists(new_file_path):
                 os.makedirs(new_file_path)
-            # file.save_as(os.path.join(new_file_path, "Crop_"+path[1]))
             pydicom.dcmwrite(os.path.join(new_file_path, "Crop_"+path[1]), file)

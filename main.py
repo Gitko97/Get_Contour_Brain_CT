@@ -18,10 +18,8 @@ class Controller(object):
         self.dicom_files = []
         self.images_hu_pixels = []
         self.normalized_image = []
-        # self.ui =
         self.file_io = FileInOut(file_extension)
         self.image_preprocessor = Image_PreProcessor()
-        self.image_shape = None
         self.image_mean_pixel = None
         self.setting_value = {
             "hu_boundary_value" : -1000,

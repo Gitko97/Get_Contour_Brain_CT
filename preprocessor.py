@@ -16,13 +16,12 @@ class Image_PreProcessor(object):
     def get_pixels_hu(self, dicom_files, hu_boundary_value=-1000):
         image = np.stack([s.pixel_array for s in dicom_files])
         image = image.astype(np.int16)
-        image[image <= hu_boundary_value] = 0
+        # image[image <= hu_boundary_value] = 0
 
         for slice_number in range(len(dicom_files)):
 
             intercept = dicom_files[slice_number].RescaleIntercept
             slope = dicom_files[slice_number].RescaleSlope
-
             if slope != 1:
                 image[slice_number] = slope * image[slice_number].astype(np.float64)
                 image[slice_number] = image[slice_number].astype(np.int16)
