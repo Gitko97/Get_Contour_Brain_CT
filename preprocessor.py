@@ -13,11 +13,9 @@ class Image_PreProcessor(object):
 
         return slices
 
-    def get_pixels_hu(self, dicom_files, hu_boundary_value=-1000):
+    def get_pixels_hu(self, dicom_files, hu_boundary_value=-70):
         image = np.stack([s.pixel_array for s in dicom_files])
         image = image.astype(np.int16)
-        # image[image <= hu_boundary_value] = 0
-
         for slice_number in range(len(dicom_files)):
 
             intercept = dicom_files[slice_number].RescaleIntercept
@@ -27,7 +25,9 @@ class Image_PreProcessor(object):
                 image[slice_number] = image[slice_number].astype(np.int16)
 
             image[slice_number] += np.int16(intercept)
-        return np.array(image, dtype=np.int16)
+        original_hu_image = image.copy()
+        image[image <= hu_boundary_value] = image.min()
+        return np.array(original_hu_image, dtype=np.int16), np.array(image, dtype=np.int16)
 
     def normalize(self, images, min_bound=-1000, max_bound=500, pixel_mean=None):
         images = (images - min_bound) / (max_bound - min_bound)

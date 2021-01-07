@@ -34,7 +34,7 @@ class SettingController(object):
 
     def preview_setting(self):
         setting = self.get_text_field_value()
-        images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_file,
+        original_hu_image, images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_file,
                                                                  hu_boundary_value=setting.get(
                                                                      "hu_boundary_value"))
         _, normalized_image = self.image_preprocessor.normalize(images_hu_pixels,
@@ -49,7 +49,7 @@ class SettingController(object):
         brain_contour = self.image_preprocessor.find_brain_contour(contours=contours, hierarchy=hierarchy,
                                                                    init_position=setting.get(
                                                                        "brain_init_position"))
-        output = self.image_preprocessor.extract_image_with_contour(image=self.dicom_file[0].pixel_array, brain_contour=brain_contour)
+        output = self.image_preprocessor.extract_image_with_contour(image=original_hu_image[0], brain_contour=brain_contour)
         plt.figure(None, figsize=(5, 3), dpi=200)
         plt.subplot(1, 2, 1)
         plt.axis('off')
