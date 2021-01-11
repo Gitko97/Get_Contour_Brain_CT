@@ -6,6 +6,8 @@ import numpy as np
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from skimage import measure
 
 from Dicom.Get_Contour_Brain_CT.file_in_out import FileInOut
 from Dicom.Get_Contour_Brain_CT.preprocessor import Image_PreProcessor
@@ -37,9 +39,9 @@ class Controller(object):
         sys.exit(app.exec_())
 
     def load_files(self):
-        # selected_dir = QFileDialog.getExistingDirectory(None, caption='Choose Directory', directory=os.getcwd())
-        # self.file_paths = self.file_io.search(selected_dir)
-        self.file_paths = self.file_io.search("/Users/joonhyoungjeon/Downloads/20201221/S168/CT")
+        selected_dir = QFileDialog.getExistingDirectory(None, caption='Choose Directory', directory=os.getcwd())
+        self.file_paths = self.file_io.search(selected_dir)
+        # self.file_paths = self.file_io.search("/Users/joonhyoungjeon/Downloads/20201221/S168/CT")
 
         self.ui.listView.clear()
         for filepath in self.file_paths:

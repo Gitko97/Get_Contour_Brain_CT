@@ -65,11 +65,6 @@ class Ui_Setting(QtWidgets.QDialog):
         self.previewButton.setObjectName("previewButton")
         self.previewButton.clicked.connect(self.controller.preview_setting)
 
-        self.trackBarButton = QtWidgets.QPushButton(self.frame)
-        self.trackBarButton.setGeometry(QtCore.QRect(220, 400, 113, 32))
-        self.trackBarButton.setObjectName("trackBarButton")
-        self.trackBarButton.clicked.connect(self.controller.using_trackbar)
-
         self.resetValueButton = QtWidgets.QPushButton(self.frame)
         self.resetValueButton.setGeometry(QtCore.QRect(130, 310, 113, 32))
         self.resetValueButton.setObjectName("resetValueButton")
@@ -91,4 +86,3 @@ class Ui_Setting(QtWidgets.QDialog):
         self.saveButton.setText(_translate("Dialog", "저장"))
         self.previewButton.setText(_translate("Dialog", "미리보기"))
         self.resetValueButton.setText(_translate("Dialog", "초기화"))
-        self.trackBarButton.setText(_translate("Dialog", "트랙바"))

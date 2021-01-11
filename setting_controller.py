@@ -1,11 +1,12 @@
+import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 from Dicom.Get_Contour_Brain_CT.preprocessor import Image_PreProcessor
 from Dicom.Get_Contour_Brain_CT.setting_ui import Ui_Setting
-
+from pydicom.pixel_data_handlers import util
 
 class SettingController(object):
-    def __init__(self,main_controller, dicom_path):
+    def __init__(self, main_controller, dicom_path):
         self.image_preprocessor = Image_PreProcessor()
         self.main_controller = main_controller
         self.ui = Ui_Setting(self)
@@ -17,9 +18,6 @@ class SettingController(object):
         brain_init_position = (int(brain_init_position[0][1:]), int(brain_init_position[1][:-1]))
         setting_value = {
             "hu_boundary_value": int(self.ui.hu_boundary_value_text.toPlainText()),
-            "normalized_min_bound": int(self.ui.normalized_min_bound_text.toPlainText()),
-            "normalized_max_bound": int(self.ui.normalized_max_bound_text.toPlainText()),
-            "contour_OTSU_boundary_value": int(self.ui.contour_OTSU_boundary_value_text.toPlainText()),
             "brain_init_position": brain_init_position
         }
         return setting_value
@@ -34,43 +32,37 @@ class SettingController(object):
 
     def preview_setting(self):
         setting = self.get_text_field_value()
-        original_hu_image, images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_file,
-                                                                 hu_boundary_value=setting.get(
-                                                                     "hu_boundary_value"))
-        _, normalized_image = self.image_preprocessor.normalize(images_hu_pixels,
-                                                                               min_bound=setting.get(
-                                                                                   "normalized_min_bound"),
-                                                                               max_bound=setting.get(
-                                                                                   "normalized_max_bound"), pixel_mean=self.main_controller.image_mean_pixel)
-        contour_image = (normalized_image[0] * 255).astype(np.uint8)  # 100 이라는 경계값으로 contour를 찾기 위해서 0~255로 값 바꿈
-        _, contours, hierarchy = self.image_preprocessor.find_dicom_Countour_OTSU(contour_image,
-                                                                                  contour_boundary_value=setting.get(
-                                                                                      "contour_OTSU_boundary_value"))
+        images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_file)
+        binary_image = self.image_preprocessor.get_binary_image_with_hu_value(images_hu_pixels[0],
+                                                                              hu_boundary_value=setting.get(
+                                                                                  "hu_boundary_value"))
+        _, contours, hierarchy = self.image_preprocessor.find_dicom_Countour(binary_image)
         brain_contour = self.image_preprocessor.find_brain_contour(contours=contours, hierarchy=hierarchy,
                                                                    init_position=setting.get(
                                                                        "brain_init_position"))
-        output = self.image_preprocessor.extract_image_with_contour(image=original_hu_image[0], brain_contour=brain_contour)
+        output = self.image_preprocessor.extract_image_with_contour(image=self.dicom_file[0].pixel_array,
+                                                                    brain_contour=brain_contour)
+        cv2.circle(output, setting.get("brain_init_position"), 10, (255, 0, 0), 5)
         plt.figure(None, figsize=(5, 3), dpi=200)
-        plt.subplot(1, 2, 1)
+        plt.subplot(1, 3, 1)
         plt.axis('off')
         plt.tight_layout()
-        plt.imshow(self.dicom_file[0].pixel_array, cmap='bone')
+        plt.imshow(images_hu_pixels[0], cmap='bone')
         plt.title("Original Image")
-        plt.subplot(1, 2, 2)
+        plt.subplot(1, 3, 2)
         plt.axis('off')
         plt.tight_layout()
         plt.imshow(output, cmap='bone')
+        plt.title("Crop Image")
+        plt.subplot(1, 3, 3)
+        plt.axis('off')
+        plt.tight_layout()
+        plt.imshow(binary_image, cmap='bone')
         plt.title("Crop Image")
         plt.show()
 
     def set_text_field(self, setting_value):
         self.ui.hu_boundary_value_text.setPlainText(str(setting_value.get("hu_boundary_value")))
-        self.ui.normalized_min_bound_text.setPlainText(
-            str(setting_value.get("normalized_min_bound")))
-        self.ui.normalized_max_bound_text.setPlainText(
-            str(setting_value.get("normalized_max_bound")))
-        self.ui.contour_OTSU_boundary_value_text.setPlainText(
-            str(setting_value.get("contour_OTSU_boundary_value")))
         self.ui.brain_init_position_text.setPlainText(
             str(setting_value.get("brain_init_position")))
 
