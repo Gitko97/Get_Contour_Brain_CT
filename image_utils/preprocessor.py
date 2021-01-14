@@ -17,7 +17,6 @@ class Image_PreProcessor(object):
     def get_pixels_hu(self, dicom_files):
         # pydicom's apply_modality_lut method has similar function with this method
         images = np.stack([s.pixel_array for s in dicom_files])
-        print(images.min(), images.max())
         hu_pixels = []
         for file, image in zip(dicom_files, images):
             rescaled_arr = util.apply_modality_lut(image, file)
@@ -45,7 +44,6 @@ class Image_PreProcessor(object):
         images[images < 0] = 0.
         if pixel_mean == None:
             pixel_mean = images.mean()
-        print("Mean : {}, Min : {}, Max : {}".format(pixel_mean, images.min(), images.max()))
         image = images - pixel_mean
         return images.mean(), np.array(image, dtype=np.float64)
 

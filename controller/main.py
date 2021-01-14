@@ -1,18 +1,15 @@
 import os
 import sys
 
-import cv2
 import numpy as np
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from skimage import measure
-
-from Dicom.Get_Contour_Brain_CT.file_in_out import FileInOut
-from Dicom.Get_Contour_Brain_CT.preprocessor import Image_PreProcessor
-from Dicom.Get_Contour_Brain_CT.setting_controller import SettingController
-from Dicom.Get_Contour_Brain_CT.ui import Ui_Dialog
+from Dicom.Get_Contour_Brain_CT.file.ChangeToTFRecord import TfRecordConversion
+from Dicom.Get_Contour_Brain_CT.file.file_in_out import FileInOut
+from Dicom.Get_Contour_Brain_CT.image_utils.preprocessor import Image_PreProcessor
+from Dicom.Get_Contour_Brain_CT.controller.setting_controller import SettingController
+from Dicom.Get_Contour_Brain_CT.ui.ui import Ui_Dialog
 
 
 class Controller(object):
@@ -30,7 +27,7 @@ class Controller(object):
 
     def set_setting_value(self, setting_value):
         self.setting_value = setting_value
-        self.images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_files)
+        #self.images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_files)
 
     def start(self):
         app = QtWidgets.QApplication(sys.argv)
@@ -47,7 +44,7 @@ class Controller(object):
         for filepath in self.file_paths:
             self.ui.listView.addItem(filepath[1])
         self.dicom_files = self.image_preprocessor.load_scan(self.file_paths)
-        self.images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_files)
+        #self.images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_files)
 
     def add_files(self):
         selected_dir = QFileDialog.getExistingDirectory(None, caption='Choose Directory', directory=os.getcwd())
@@ -57,7 +54,7 @@ class Controller(object):
             self.ui.listView.addItem(filepath[1])
             self.dicom_files.extend(self.image_preprocessor.load_scan([filepath]))
 
-        self.images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_files)
+        #self.images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_files)
 
     def delete_files(self):
         for index, selected_index in enumerate(self.ui.listView.selectedIndexes()):
@@ -65,16 +62,17 @@ class Controller(object):
             self.dicom_files.pop(selected_index.row() - index)
             self.ui.listView.takeItem(selected_index.row() - index)
 
-        self.images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_files)
+        #self.images_hu_pixels = self.image_preprocessor.get_pixels_hu(self.dicom_files)
 
     def itemClicked(self):
         selected_index = self.ui.listView.currentRow()
-        brain_crop_images = self.dicom_preprocess(self.images_hu_pixels[selected_index], self.images_hu_pixels[selected_index])
+        images_hu_pixels = self.image_preprocessor.get_pixels_hu([self.dicom_files[selected_index]])
+        brain_crop_images = self.dicom_preprocess(images_hu_pixels[0], images_hu_pixels[0])
         plt.figure(num=self.ui.listView.currentItem().text(), figsize=(5, 3), dpi=200)
         plt.subplot(1, 2, 1)
         plt.axis('off')
         plt.tight_layout()
-        plt.imshow(self.images_hu_pixels[selected_index], cmap='bone')
+        plt.imshow(images_hu_pixels[0], cmap='bone')
         plt.title("Original Image")
         plt.subplot(1, 2, 2)
         plt.axis('off')
@@ -101,10 +99,14 @@ class Controller(object):
         setting_controller.start()
 
     def file_save(self):
-        croped_image = [self.dicom_preprocess(file.pixel_array, image) for file, image in zip(self.dicom_files, self.images_hu_pixels)]
+        croped_image = [self.dicom_preprocess(file.pixel_array, image) for file, image in zip(self.dicom_files, self.image_preprocessor.get_pixels_hu(self.dicom_files))]
         for file, brain in zip(self.dicom_files, croped_image):
             file.PixelData = brain.astype(np.uint16).tobytes()
         self.file_io.save(self.file_paths, self.dicom_files)
+
+    def change_dicom_to_tfRecord(self):
+        fileChanger = TfRecordConversion()
+        fileChanger.converse(self.file_paths)
 
 if __name__ == '__main__':
     controller = Controller(".dcm")

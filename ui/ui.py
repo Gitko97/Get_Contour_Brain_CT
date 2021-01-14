@@ -52,6 +52,11 @@ class Ui_Dialog(QtWidgets.QDialog):
         self.setting_value_button.setGeometry(QtCore.QRect(410, 510, 201, 32))
         self.setting_value_button.setObjectName("setting_value")
 
+        self.change_TFRecord_button = QtWidgets.QPushButton(self.frame)
+        self.change_TFRecord_button.setGeometry(QtCore.QRect(300, 530, 201, 32))
+        self.change_TFRecord_button.setObjectName("tfRecord")
+        self.change_TFRecord_button.clicked.connect(self.controller.change_dicom_to_tfRecord)
+
         self.listView.itemClicked.connect(self.controller.itemClicked)
         # self.listView.itemDoubleClicked.connect(self.controller.itemDoubleClicked)
         # self.listView.currentItemChanged.connect(self.chkCurrentItemChanged)
@@ -74,3 +79,4 @@ class Ui_Dialog(QtWidgets.QDialog):
         self.add_file_button.setText(_translate("Dialog", "파일 추가"))
         self.setting_value_button.setText(_translate("Dialog", "기본 값 설정"))
         self.dicom_save_button.setText(_translate("Dialog", "자른 파일 저장"))
+        self.change_TFRecord_button.setText(_translate("Dialog", "tfRecord저장"))

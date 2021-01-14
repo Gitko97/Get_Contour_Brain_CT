@@ -1,9 +1,8 @@
 import cv2
-import numpy as np
 from matplotlib import pyplot as plt
-from Dicom.Get_Contour_Brain_CT.preprocessor import Image_PreProcessor
-from Dicom.Get_Contour_Brain_CT.setting_ui import Ui_Setting
-from pydicom.pixel_data_handlers import util
+from Dicom.Get_Contour_Brain_CT.image_utils.preprocessor import Image_PreProcessor
+from Dicom.Get_Contour_Brain_CT.ui.ui import Ui_Setting
+
 
 class SettingController(object):
     def __init__(self, main_controller, dicom_path):
