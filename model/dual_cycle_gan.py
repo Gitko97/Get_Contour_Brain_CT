@@ -25,8 +25,6 @@ class CycleGan(keras.Model):
             gen_F_optimizer,
             disc_X_optimizer,
             disc_Y_optimizer
-            # gen_loss_fn,
-            # disc_loss_fn
     ):
         super(CycleGan, self).compile()
         self.gen_G_optimizer = gen_G_optimizer
@@ -43,15 +41,12 @@ class CycleGan(keras.Model):
     @tf.function
     def train_step(self, batch_data):
         # x is Horse and y is zebra
-        print(np.shape(batch_data[0]))
         ct, mr = batch_data[0]
-
         with tf.GradientTape(persistent=True) as tape:
             # Horse to fake zebra
             fake_mr = self.gen_G(ct, training=True)
             # Zebra to fake horse -> y2x
             fake_ct = self.gen_F(mr, training=True)
-
             # Cycle (Horse to fake zebra to fake horse): x -> y -> x
             cycled_x = self.gen_F(fake_mr, training=True)
             # Cycle (Zebra to fake horse to fake zebra) y -> x -> y
