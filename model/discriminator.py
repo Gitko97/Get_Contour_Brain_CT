@@ -6,42 +6,51 @@ from Dicom.Get_Contour_Brain_CT.model.custom_layer import *
 
 
 class Discriminator:
-    def __init__(self, name, resue_layer=None):
-        self.model = None
-        self.ndf = 64
+    def __init__(self, resue_layer=None, ndf=64, input_shape=(512, 512, 1), name=None):
+        self.ndf = ndf
         self.name = name
+        self.input_shape = input_shape
         self.reuse_layer = resue_layer
+        self.model = self.buildModel()
+        # self.model.compile(loss='binary_crossentropy', optimizer="adam")
 
     def lossFunction(self):
         return
 
-    def buildModel(self, input_shape):
-        inputs = Input(input_shape)
-        conv1 = Conv2D(filters=self.ndf, kernel_size=4, padding='same', kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
+    def summary(self):
+        return self.model.summary()
+
+    def buildModel(self):
+        inputs = Input(self.input_shape)
+        conv1 = Conv2D(filters=self.ndf, kernel_size=4, padding='same',
+                       kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
                        strides=2,
                        data_format='channels_last')(inputs)
         lrelu = Lrelu()(conv1)
 
-        if self.reuse_layer is None :
+        if self.reuse_layer is None:
             self.reuse_layer = ReuseLayer()
         else:
             self.reuse_layer = self.reuse_layer
 
         reuse_layer_result = self.reuse_layer(lrelu)
 
-        conv5 = Conv2D(filters=1, kernel_size=4, padding='same', kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
-                   strides=1,
-                   data_format='channels_last')(reuse_layer_result)
+        conv5 = Conv2D(filters=1, kernel_size=4, padding='same',
+                       kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
+                       strides=1,
+                       data_format='channels_last')(reuse_layer_result)
 
         result = tf.identity(conv5)
 
-        self.model = Model(inputs, result)
-        self.model.compile(loss='categorical_crossentropy',
-                           optimizer=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-8),
-                           metrics=[keras.metrics.SparseCategoricalAccuracy()])
+        ##
+        # result = Flatten()(result)
+        # result = Dense(1, activation='sigmoid')(result)
+        model = Model(inputs, result, name=self.name)
+        return model
 
     def trainModel(self, input_data):
         return self.model.predict(input_data)
+
 
 class ReuseLayer(layers.Layer):
 
@@ -51,23 +60,23 @@ class ReuseLayer(layers.Layer):
 
     def build(self, input_shape):
         self.conv2 = Conv2D(filters=self.ndf * 2, kernel_size=4, padding='same',
-                       kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
-                       strides=2,
-                       data_format='channels_last')
+                            kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
+                            strides=2,
+                            data_format='channels_last')
         self.normalized2 = Instance_Normalize()
         self.lrelu2 = Lrelu()
 
         self.conv3 = Conv2D(filters=self.ndf * 4, kernel_size=4, padding='same',
-                       kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
-                       strides=2,
-                       data_format='channels_last')
+                            kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
+                            strides=2,
+                            data_format='channels_last')
         self.normalized3 = Instance_Normalize()
         self.lrelu3 = Lrelu()
 
         self.conv4 = Conv2D(filters=self.ndf * 8, kernel_size=4, padding='same',
-                       kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
-                       strides=2,
-                       data_format='channels_last')
+                            kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
+                            strides=2,
+                            data_format='channels_last')
         self.normalized4 = Instance_Normalize()
         self.lrelu4 = Lrelu()
 

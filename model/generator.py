@@ -6,16 +6,19 @@ from Dicom.Get_Contour_Brain_CT.model.custom_layer import *
 
 
 class Generator:
-    def __init__(self):
-        self.model = None
+    def __init__(self, input_shape=(512,512,1), name=None):
         self.ngf = 64
+        self.input_shape = input_shape
+        self.name = name
+        self.model = self.buildModel()
+        # self.model.compile(loss='binary_crossentropy', optimizer="adam")
 
     def lossFunction(self):
         return
 
-    def buildModel(self, input_shape):
+    def buildModel(self):
         # (N, H, W, C) -> (N, H, W, 64)
-        inputs = Input(input_shape)
+        inputs = Input(self.input_shape)
         padded_inputs = ReflectionPadding2D(padding=(3, 3))(inputs)
         conv1 = Conv2D(filters=self.ngf, kernel_size=7, padding='valid', kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
                        strides=1,
@@ -37,7 +40,7 @@ class Generator:
         relu = ReLU()(normalized)
 
         res_out = relu
-        if (input_shape[0] <= 128) and (input_shape[1] <= 128):
+        if (self.input_shape[0] <= 128) and (self.input_shape[1] <= 128):
             # use 6 residual blocks for 128x128 images
             for idx in range(1, 6 + 1):
                 res_out = Res_Block(filters_num=np.shape(res_out)[3])(res_out)
@@ -55,15 +58,18 @@ class Generator:
         relu = ReLU()(norm)
 
         padded_inputs = ReflectionPadding2D(padding=(3, 3))(relu)
-        norm = Conv2D(filters=input_shape[2], kernel_size=7, padding='valid', kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
+        norm = Conv2D(filters=self.input_shape[2], kernel_size=7, padding='valid', kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
                        strides=1,
                        data_format='channels_last')(padded_inputs)
         result = tanh(norm)
-        self.model = Model(inputs, result)
-        self.model.compile(loss='categorical_crossentropy',
-                           optimizer=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-8),metrics=[keras.metrics.SparseCategoricalAccuracy()])
+        model = Model(inputs, result, name=self.name)
+
+        return model
 
     def trainModel(self, input_data):
         return self.model.predict(input_data)
+
+    def summary(self):
+        return self.model.summary()
 
 

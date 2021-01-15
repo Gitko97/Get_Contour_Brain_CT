@@ -8,18 +8,29 @@ import numpy as np
 
 
 class ReflectionPadding2D(layers.Layer):
+    """Implements Reflection Padding as a layer.
+
+    Args:
+        padding(tuple): Amount of padding for the
+        spatial dimensions.
+
+    Returns:
+        A padded tensor with the same type as the input tensor.
+    """
+
     def __init__(self, padding=(1, 1), **kwargs):
         self.padding = tuple(padding)
-        self.input_spec = [InputSpec(ndim=4)]
         super(ReflectionPadding2D, self).__init__(**kwargs)
 
-    def get_output_shape_for(self, s):
-        """ If you are using "channels_last" configuration"""
-        return (s[0], s[1] + 2 * self.padding[0], s[2] + 2 * self.padding[1], s[3])
-
-    def call(self, x, mask=None):
-        w_pad, h_pad = self.padding
-        return tf.pad(x, [[0, 0], [h_pad, h_pad], [w_pad, w_pad], [0, 0]], 'REFLECT')
+    def call(self, input_tensor, mask=None):
+        padding_width, padding_height = self.padding
+        padding_tensor = [
+            [0, 0],
+            [padding_height, padding_height],
+            [padding_width, padding_width],
+            [0, 0],
+        ]
+        return tf.pad(input_tensor, padding_tensor, mode="REFLECT")
 
 
 class Instance_Normalize(layers.Layer):
