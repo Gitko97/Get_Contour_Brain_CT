@@ -1,7 +1,11 @@
 import keras
 import tensorflow as tf
-from Dicom.Get_Contour_Brain_CT.model.loss import Loss
 import numpy as np
+from loss import Loss
+from tensorflow.python.keras import Input
+from tensorflow.python.keras.layers import Reshape
+
+
 class CycleGan(keras.Model):
     def __init__(
             self,
@@ -18,6 +22,7 @@ class CycleGan(keras.Model):
         self.disc_Y = discriminator_Y
         self.lambda_cycle = lambda_cycle
         self.loss_function = Loss()
+        self.number = 0
 
     def compile(
             self,
@@ -38,15 +43,14 @@ class CycleGan(keras.Model):
         self.perceptual_loss_fn = self.loss_function.perceptual_loss_fn
         self.ssim_loss_fn = self.loss_function.ssim_loss_fn
 
-    @tf.function
-    def train_step(self, batch_data):
-        # x is Horse and y is zebra
-        ct, mr = batch_data[0]
+    @tf.function #change to graph mode
+    def train_step(self, ct, mr):
+
         with tf.GradientTape(persistent=True) as tape:
             # Horse to fake zebra
-            fake_mr = self.gen_G(ct, training=True)
+            fake_mr = self.gen_G(tf.convert_to_tensor(ct), training=True)
             # Zebra to fake horse -> y2x
-            fake_ct = self.gen_F(mr, training=True)
+            fake_ct = self.gen_F(tf.convert_to_tensor(mr), training=True)
             # Cycle (Horse to fake zebra to fake horse): x -> y -> x
             cycled_x = self.gen_F(fake_mr, training=True)
             # Cycle (Zebra to fake horse to fake zebra) y -> x -> y
@@ -107,6 +111,7 @@ class CycleGan(keras.Model):
         self.disc_Y_optimizer.apply_gradients(
             zip(disc_Y_grads, self.disc_Y.trainable_variables)
         )
+
 
         return {
             "G_loss": total_loss_G,
