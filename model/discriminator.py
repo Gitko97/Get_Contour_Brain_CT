@@ -1,8 +1,6 @@
-from tensorflow import keras
 from tensorflow.python.keras import Model
-from tensorflow.python.keras.optimizer_v2.adam import Adam
-from tensorflow.keras import layers
-from Dicom.Get_Contour_Brain_CT.model.custom_layer import *
+import tensorflow as tf
+from custom_layer import *
 
 
 class Discriminator:
@@ -42,14 +40,9 @@ class Discriminator:
 
         result = tf.identity(conv5)
 
-        ##
-        # result = Flatten()(result)
-        # result = Dense(1, activation='sigmoid')(result)
         model = Model(inputs, result, name=self.name)
         return model
 
-    def trainModel(self, input_data):
-        return self.model.predict(input_data)
 
 
 class ReuseLayer(layers.Layer):

@@ -1,8 +1,6 @@
-from tensorflow import keras
-from tensorflow.python.keras import Model
-from tensorflow.python.keras.optimizer_v2.adam import Adam
+from custom_layer import *
 from keras.activations import tanh
-from Dicom.Get_Contour_Brain_CT.model.custom_layer import *
+from tensorflow.python.keras import Model
 
 
 class Generator:
@@ -66,8 +64,8 @@ class Generator:
 
         return model
 
-    def trainModel(self, input_data):
-        return self.model.predict(input_data)
+    # def trainModel(self, input_data):
+    #     return self.model.predict(input_data)
 
     def summary(self):
         return self.model.summary()
