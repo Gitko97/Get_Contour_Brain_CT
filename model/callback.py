@@ -17,14 +17,15 @@ def save_check_points():
 class GANMonitor(keras.callbacks.Callback):
     """A callback to generate and save images after each epoch"""
 
-    def __init__(self, gen_G, test_ct_data, num_img=4):
+    def __init__(self, gen_G, test_dataset,dir_path="./", num_img=4):
         self.num_img = num_img
-        self.test_ct = test_ct_data
+        self.test_dataset = test_dataset
         self.gen_G = gen_G
+        self.sample_directory = dir_path
 
     def __call__(self, epoch, logs=None):
         _, ax = plt.subplots(4, 2, figsize=(12, 12))
-        for i, img in enumerate(self.test_ct.take(self.num_img)):
+        for i, img in enumerate(self.test_dataset.take(self.num_img)):
             prediction = self.model.gen_G(tf.convert_to_tensor(img))[0].numpy()
             prediction = (prediction * 127.5 + 127.5).astype(np.uint8)
             img = (img[0] * 127.5 + 127.5).numpy().astype(np.uint8)
@@ -38,7 +39,7 @@ class GANMonitor(keras.callbacks.Callback):
 
             prediction = keras.preprocessing.image.array_to_img(prediction)
             prediction.save(
-                "generated_img_{i}_{epoch}.png".format(i=i, epoch=epoch + 1)
+                (self.sample_directory+"generated_img_{i}_{epoch}.png").format(i=i, epoch=epoch + 1)
             )
         plt.show()
         plt.close()

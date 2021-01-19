@@ -127,7 +127,7 @@ def train():
 
         if (epoch + 1) % 5 == 0:
             ckpt_save_path = ckpt_manager.save()
-            imgae_callback(gen_G, test_ct_data=CT_test)
+            imgae_callback(epoch)
             print('Saving checkpoint for epoch {} at {}'.format(epoch + 1,
                                                                 ckpt_save_path))
 
