@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 import time
 
@@ -8,7 +9,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 sys.path.append('../')
-from callback import GANMonitor
+from callback import GANMonitor, MyTensorBoard
 from discriminator import Discriminator
 from dual_cycle_gan import CycleGan
 from generator import Generator
@@ -43,9 +44,10 @@ def get_options_with_default():
     return EPOCHS, BATCH_SIZE, loader
 
 
-EPOCHS, BATCH_SIZE, loader = get_options_with_default()
-# EPOCHS, BATCH_SIZE, loader = get_options_with_parameter()
-
+if args.d is None:
+    EPOCHS, BATCH_SIZE, loader = get_options_with_default()
+else:
+    EPOCHS, BATCH_SIZE, loader = get_options_with_parameter()
 
 # ------Now try to load DATA-------#
 
@@ -70,11 +72,11 @@ train_dataset_MR = tf.data.Dataset.from_tensor_slices(MR_train).cache().shuffle(
 
 # ------Make Cycle Gan(only for unpaired data)-------#
 
-
 gen_G = Generator(name="Generator_G", input_shape=inputShape).model
 gen_F = Generator(name="Generator_F", input_shape=inputShape).model
 disc_X = Discriminator(name="Discriminator_X", input_shape=inputShape).model
 disc_Y = Discriminator(name="Discriminator_Y", input_shape=inputShape).model
+
 generator_g_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
 generator_f_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
 discriminator_x_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.9)
@@ -92,8 +94,11 @@ cycle_gan_model.compile(
 )
 
 # ------For train callback method-------#
-imgae_callback = GANMonitor(gen_G, test_dataset=CT_test)
-checkpoint_path = "./checkpoints/train"
+imgae_callback = GANMonitor(gen_G, dir_path="./generate_img/", test_dataset=CT_train)
+
+if not os.path.exists("./checkpoints"):
+    os.mkdir("./checkpoints")
+checkpoint_path = "./checkpoints"
 ckpt = tf.train.Checkpoint(generator_g=gen_G,
                            generator_f=gen_F,
                            discriminator_x=disc_X,
@@ -109,6 +114,8 @@ if ckpt_manager.latest_checkpoint:
     ckpt.restore(ckpt_manager.latest_checkpoint)
     print('Latest checkpoint restored!!')
 
+loss_log_tensorboard = MyTensorBoard("./logs_tensorboard/")
+
 K = tf.keras.backend
 
 
@@ -121,8 +128,12 @@ def train():
             history = cycle_gan_model.train_step(image_x, image_y)
             # K.clear_session() # this method can be solution for memory leak
             if n % 1 == 0:
-                print("{} Epochs / {} batch History :".format(epoch+1, n))
-                print(history)
+                print("{} Epochs / {} batch History :".format(epoch + 1, n))
+                template = 'G_loss: {}, F_loss: {}, D_X_loss: {}, D_Y_loss Loss: {}'
+                print(template.format(history['G_loss'].numpy(),
+                                      history['F_loss'].numpy(),
+                                      history['D_X_loss'].numpy(),
+                                      history['D_Y_loss'].numpy()))
             n += 1
 
         if (epoch + 1) % 5 == 0:
@@ -133,7 +144,8 @@ def train():
 
         print('Time taken for epoch {} is {} sec\n'.format(epoch + 1,
                                                            time.time() - start))
+        loss_log_tensorboard.write_log(history, epoch)
 
 
-
+print("Start Learning")
 train()
