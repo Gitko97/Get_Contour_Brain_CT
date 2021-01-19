@@ -1,22 +1,22 @@
 import os
 import pydicom
 import re
-from tqdm import tqdm
 
 class FileInOut(object):
 
     def __init__(self, file_extension):
         self.file_extension = file_extension
-        self.ct_regex = re.compile(r"S.*[CT | GD].*")
+        self.ct_regex = re.compile(r"S.*CT.*")
+        self.mr_regex = re.compile(r"S.*[GD|MRI].*")
+
 
     def search(self, root_directory):
         try:
             file_list = []
             for (path, dir, files) in os.walk(root_directory):
-                print(dir)
                 for filename in files:
                     ext = os.path.splitext(filename)[-1]
-                    if ext == self.file_extension and self.ct_regex.search(filename):
+                    if ext == self.file_extension and (self.ct_regex.search(filename) or self.mr_regex.search(filename)):
                         file_list.append([path, filename])
             return file_list
         except PermissionError:
@@ -29,6 +29,26 @@ class FileInOut(object):
                 os.makedirs(new_file_path)
             pydicom.dcmwrite(os.path.join(new_file_path, "Crop_" + path[1]), file)
 
-    def dicom_to_tfRecord(self, root_directory):
-        
-        return 0
+    def find_ct_files(self, root_directory):
+        try:
+            file_list = []
+            for (path, dir, files) in os.walk(root_directory):
+                for filename in files:
+                    ext = os.path.splitext(filename)[-1]
+                    if ext == self.file_extension and (self.ct_regex.search(filename)):
+                        file_list.append([path, filename])
+            return file_list
+        except PermissionError:
+            pass
+
+    def find_mr_files(self, root_directory):
+        try:
+            file_list = []
+            for (path, dir, files) in os.walk(root_directory):
+                for filename in files:
+                    ext = os.path.splitext(filename)[-1]
+                    if ext == self.file_extension and (self.mr_regex.search(filename)):
+                        file_list.append([path, filename])
+            return file_list
+        except PermissionError:
+            pass

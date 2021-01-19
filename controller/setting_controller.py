@@ -1,7 +1,7 @@
 import cv2
 from matplotlib import pyplot as plt
 from Dicom.Get_Contour_Brain_CT.image_utils.preprocessor import Image_PreProcessor
-from Dicom.Get_Contour_Brain_CT.ui.ui import Ui_Setting
+from Dicom.Get_Contour_Brain_CT.ui.setting_ui import Ui_Setting
 
 
 class SettingController(object):
@@ -35,7 +35,7 @@ class SettingController(object):
         binary_image = self.image_preprocessor.get_binary_image_with_hu_value(images_hu_pixels[0],
                                                                               hu_boundary_value=setting.get(
                                                                                   "hu_boundary_value"))
-        _, contours, hierarchy = self.image_preprocessor.find_dicom_Countour(binary_image)
+        contours, hierarchy = self.image_preprocessor.find_dicom_Countour(binary_image)
         brain_contour = self.image_preprocessor.find_brain_contour(contours=contours, hierarchy=hierarchy,
                                                                    init_position=setting.get(
                                                                        "brain_init_position"))

@@ -10,13 +10,12 @@ from Dicom.Get_Contour_Brain_CT.file.file_in_out import FileInOut
 from Dicom.Get_Contour_Brain_CT.image_utils.preprocessor import Image_PreProcessor
 from Dicom.Get_Contour_Brain_CT.controller.setting_controller import SettingController
 from Dicom.Get_Contour_Brain_CT.ui.ui import Ui_Dialog
-
+from Dicom.Get_Contour_Brain_CT.controller.gan_controller import GanController
 
 class Controller(object):
     def __init__(self, file_extension=".dcm"):
         self.file_paths = []
         self.dicom_files = []
-        self.images_hu_pixels = []
         self.file_io = FileInOut(file_extension)
         self.image_preprocessor = Image_PreProcessor()
         self.setting_value = {
@@ -84,7 +83,7 @@ class Controller(object):
     def dicom_preprocess(self,paint_crop_image, cropping_image):
         binary_image = self.image_preprocessor.get_binary_image_with_hu_value(cropping_image, hu_boundary_value=self.setting_value.get("hu_boundary_value"))
 
-        _, contours, hierarchy = self.image_preprocessor.find_dicom_Countour(binary_image)
+        contours, hierarchy = self.image_preprocessor.find_dicom_Countour(binary_image)
         brain_contour = self.image_preprocessor.find_brain_contour(contours=contours, hierarchy=hierarchy,
                                                               init_position=self.setting_value.get("brain_init_position"))
         output = self.image_preprocessor.extract_image_with_contour(image=paint_crop_image, brain_contour=brain_contour)
@@ -107,6 +106,10 @@ class Controller(object):
     def change_dicom_to_tfRecord(self):
         fileChanger = TfRecordConversion()
         fileChanger.converse(self.file_paths)
+
+    def open_gan_view(self):
+        gan_controller = GanController(None)
+        gan_controller.start()
 
 if __name__ == '__main__':
     controller = Controller(".dcm")

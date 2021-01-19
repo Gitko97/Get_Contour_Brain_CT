@@ -4,24 +4,36 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 from pydicom.pixel_data_handlers import util
-
+from tqdm import tqdm
 
 class Image_PreProcessor(object):
 
     def load_scan(self, file_path_list):
-        slices = [pydicom.read_file(os.path.join(s[0], s[1])) for s in file_path_list]
+        print("\nReading {} dicom files...".format(len(file_path_list)))
+        slices = [pydicom.read_file(os.path.join(s[0], s[1])) for s in tqdm(file_path_list)]
         # slices.sort(key=lambda x: int(x.InstanceNumber))
 
         return slices
 
-    def get_pixels_hu(self, dicom_files):
+    def get_pixels_hu(self, dicom_files, input_shape=(512, 512)):
         # pydicom's apply_modality_lut method has similar function with this method
-        images = np.stack([s.pixel_array for s in dicom_files])
+        # images = np.stack([s.pixel_array for s in dicom_files])
+        images = []
+        print("\nResizing Files...")
+        for s in tqdm(dicom_files):
+            pixel_array = s.pixel_array
+            if np.shape(s.pixel_array) != input_shape:
+                pixel_array = cv2.resize(pixel_array, (512, 512))
+            images.append(pixel_array)
         hu_pixels = []
+        print("\nChange To HU value")
+        pbar = tqdm(total=len(dicom_files))
         for file, image in zip(dicom_files, images):
             rescaled_arr = util.apply_modality_lut(image, file)
             # windowed_rescaled_arr = util.apply_voi_lut(rescaled_arr, file, index=0)
             hu_pixels.append(rescaled_arr)
+            pbar.update(1)
+        pbar.close()
         return np.array(hu_pixels, dtype=np.int16)
 
     def get_binary_image_with_hu_value(self, hu_image, hu_boundary_value=-70):
@@ -45,7 +57,7 @@ class Image_PreProcessor(object):
         if pixel_mean == None:
             pixel_mean = images.mean()
         image = images - pixel_mean
-        return images.mean(), np.array(image, dtype=np.float64)
+        return images.mean(), np.array(image, dtype=np.float32)
 
     def find_dicom_Countour(self, binary_image):
         if binary_image.dtype != np.uint8:
@@ -56,7 +68,7 @@ class Image_PreProcessor(object):
         # plt.tight_layout()
         # plt.imshow(binary_image, cmap='bone')
         # plt.title("Binary Image")
-        image, contours, hierarchy = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         # plt.subplot(1, 2, 2)
         # plt.axis('off')
         # plt.tight_layout()
@@ -65,7 +77,7 @@ class Image_PreProcessor(object):
         # plt.imshow(con, cmap='bone')
         # plt.title("Contour")
         # plt.show()
-        return image, contours, hierarchy
+        return contours, hierarchy
 
     def get_binary_image_with_adaptiveThreshold(self, images, contour_boundary_value=100, block_size=11, c=2):
         if images.dtype != np.uint8:
@@ -100,7 +112,7 @@ class Image_PreProcessor(object):
         cv2.drawContours(mask, brain_contour, -1, 255, -1)
         out = np.zeros_like(image) + image.min()
         out[mask == 255] = image[mask == 255]
-        return np.array(out, dtype=np.float64)
+        return np.array(out, dtype=np.float32)
 
     def print_value_distribution(self, array, value_name="values", bins=100):
         plt.hist(array.flatten(), bins=bins, color='c')
