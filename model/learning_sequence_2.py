@@ -92,7 +92,7 @@ cycle_gan_model.compile(
 )
 
 # ------For train callback method-------#
-imgae_callback = GANMonitor(gen_G, test_ct_data=CT_test)
+imgae_callback = GANMonitor(gen_G, test_dataset=CT_test)
 checkpoint_path = "./checkpoints/train"
 ckpt = tf.train.Checkpoint(generator_g=gen_G,
                            generator_f=gen_F,
