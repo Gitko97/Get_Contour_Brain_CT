@@ -43,14 +43,13 @@ class CycleGan(keras.Model):
         self.perceptual_loss_fn = self.loss_function.perceptual_loss_fn
         self.ssim_loss_fn = self.loss_function.ssim_loss_fn
 
-    @tf.function #change to graph mode
+    @tf.function  # change to graph mode
     def train_step(self, ct, mr):
-
         with tf.GradientTape(persistent=True) as tape:
             # Horse to fake zebra
-            fake_mr = self.gen_G(tf.convert_to_tensor(ct), training=True)
+            fake_mr = self.gen_G(ct, training=True)
             # Zebra to fake horse -> y2x
-            fake_ct = self.gen_F(tf.convert_to_tensor(mr), training=True)
+            fake_ct = self.gen_F(mr, training=True)
             # Cycle (Horse to fake zebra to fake horse): x -> y -> x
             cycled_x = self.gen_F(fake_mr, training=True)
             # Cycle (Zebra to fake horse to fake zebra) y -> x -> y
@@ -81,8 +80,8 @@ class CycleGan(keras.Model):
             perceptual_loss_F = self.perceptual_loss_fn(fake_ct, ct)
 
             # Total generator loss
-            total_loss_G =  cycle_loss_G + gradient_difference_loss_G + perceptual_loss_G + ssim_loss_G + gen_G_loss
-            total_loss_F =  cycle_loss_F + gradient_difference_loss_F + ssim_loss_F + perceptual_loss_F + gen_F_loss
+            total_loss_G = cycle_loss_G + gradient_difference_loss_G + perceptual_loss_G + ssim_loss_G + gen_G_loss
+            total_loss_F = cycle_loss_F + gradient_difference_loss_F + ssim_loss_F + perceptual_loss_F + gen_F_loss
 
             # Discriminator loss
             disc_X_loss = self.discriminator_loss_fn(disc_real_x, disc_fake_x)
@@ -111,7 +110,6 @@ class CycleGan(keras.Model):
         self.disc_Y_optimizer.apply_gradients(
             zip(disc_Y_grads, self.disc_Y.trainable_variables)
         )
-
 
         return {
             "G_loss": total_loss_G,
