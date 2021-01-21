@@ -44,9 +44,11 @@ class Instance_Normalize(layers.Layer):
     def build(self, input_shape):
         self.scale = self.add_weight(name='scale',
                                      shape=[input_shape[3]],
+                                     trainable=True,
                                      initializer=tf.random_normal_initializer(mean=self.mean, stddev=self.stddev))
         self.offset = self.add_weight(name='offset',
                                       shape=[input_shape[3]],
+                                      trainable=True,
                                       initializer=tf.constant_initializer(0.0))
         super(Instance_Normalize, self).build(input_shape)
 
@@ -70,12 +72,14 @@ class Res_Block(layers.Layer):
             self.conv1 = self.conv2 = Conv2D(filters=self.filters, kernel_size=3, padding='same',
                                              kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
                                              strides=1,
+                                             trainable=True,
                                              data_format='channels_last')
 
         elif self.pad_type == 'REFLECT':
             self.conv1 = self.conv2 = Conv2D(filters=self.filters, kernel_size=3, padding='valid',
                                              kernel_initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02),
                                              strides=1,
+                                             trainable=True,
                                              data_format='channels_last')
             self.padding1 = self.padding2 = ReflectionPadding2D(padding=(1, 1))
         self.normalized1 = self.normalized2 = Instance_Normalize()
