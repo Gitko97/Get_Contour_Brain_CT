@@ -1,10 +1,12 @@
 import cv2
+import sys
+sys.path.append('../')
 from matplotlib import pyplot as plt
-from Dicom.Get_Contour_Brain_CT.image_utils.preprocessor import Image_PreProcessor
-from Dicom.Get_Contour_Brain_CT.ui.gan_ui import GanUI
-from Dicom.Get_Contour_Brain_CT.model.gan import GAN
-from Dicom.Get_Contour_Brain_CT.model.discriminator import Discriminator
-from Dicom.Get_Contour_Brain_CT.model.generator import Generator
+from image_utils.preprocessor import Image_PreProcessor
+from ui.gan_ui import GanUI
+from model.gan import GAN
+from model.discriminator import Discriminator
+from model.generator import Generator
 import numpy as np
 
 class GanController(object):

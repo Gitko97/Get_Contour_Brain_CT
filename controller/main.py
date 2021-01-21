@@ -1,16 +1,16 @@
 import os
 import sys
-
+sys.path.append('../')
 import numpy as np
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from matplotlib import pyplot as plt
-from Dicom.Get_Contour_Brain_CT.file.ChangeToTFRecord import TfRecordConversion
-from Dicom.Get_Contour_Brain_CT.file.file_in_out import FileInOut
-from Dicom.Get_Contour_Brain_CT.image_utils.preprocessor import Image_PreProcessor
-from Dicom.Get_Contour_Brain_CT.controller.setting_controller import SettingController
-from Dicom.Get_Contour_Brain_CT.ui.ui import Ui_Dialog
-from Dicom.Get_Contour_Brain_CT.controller.gan_controller import GanController
+from file.ChangeToTFRecord import TfRecordConversion
+from file.file_in_out import FileInOut
+from image_utils.preprocessor import Image_PreProcessor
+from controller.setting_controller import SettingController
+from ui.ui import Ui_Dialog
+# from controller.gan_controller import GanController
 
 class Controller(object):
     def __init__(self, file_extension=".dcm"):
@@ -66,6 +66,7 @@ class Controller(object):
     def itemClicked(self):
         selected_index = self.ui.listView.currentRow()
         images_hu_pixels = self.image_preprocessor.get_pixels_hu([self.dicom_files[selected_index]])
+        print(np.min(images_hu_pixels))
         brain_crop_images = self.dicom_preprocess(images_hu_pixels[0], images_hu_pixels[0])
         plt.figure(num=self.ui.listView.currentItem().text(), figsize=(5, 3), dpi=200)
         plt.subplot(1, 2, 1)
