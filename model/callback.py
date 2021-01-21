@@ -4,8 +4,8 @@ import os
 import cv2
 import tensorflow as tf
 import keras
-import matplotlib.pyplot as plt
 import numpy as np
+from image_utils.preprocessor import Image_PreProcessor
 
 
 def save_check_points():
@@ -43,23 +43,18 @@ class GANMonitor(keras.callbacks.Callback):
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         self.sample_directory = dir_path
+        self.test_dataset_num = np.shape(test_dataset)[0]
+        self.arrayToPng = Image_PreProcessor().unNormalizeToPNG
 
     def __call__(self, epoch, logs=None):
-        _, ax = plt.subplots(4, 2, figsize=(12, 12))
-        for i, img in enumerate(self.test_dataset.take(self.num_img)):
+        for i, index in enumerate(np.random.choice(self.test_dataset_num, self.num_img, replace=False)):
+            img = self.test_dataset[index].reshape((1,) + self.test_dataset[index].shape)
             prediction = self.gen_G(tf.convert_to_tensor(img))[0].numpy()
-            prediction = (prediction * 3000 + (-1000)).astype(np.uint8)
-            img = (img[0] * 3000 + (-1000)).numpy().astype(np.uint8)
-
-            ax[i, 0].imshow(img)
-            ax[i, 1].imshow(prediction)
-            ax[i, 0].set_title("Input image")
-            ax[i, 1].set_title("Translated image")
-            ax[i, 0].axis("off")
-            ax[i, 1].axis("off")
-
-            prediction = np.array(keras.preprocessing.image.array_to_img(prediction, scale=True))
-            img = np.array(keras.preprocessing.image.array_to_img(img, scale=True))
+            prediction = self.arrayToPng(prediction, 0.25)
+            img = self.arrayToPng(img[0], 0.25)
+            prediction = np.array(keras.preprocessing.image.array_to_img(prediction))
+            img = np.array(keras.preprocessing.image.array_to_img(img))
             result = cv2.hconcat([img, prediction])
             cv2.imwrite(filename=self.sample_directory + "generated_img_{i}_{epoch}.png".format(i=i, epoch=epoch + 1)
-                        ,img=result)
+                        , img=result)
+

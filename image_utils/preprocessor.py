@@ -50,7 +50,7 @@ class Image_PreProcessor(object):
 
         return window_image
 
-    def normalize(self, images, min_bound=-1000, max_bound=2000, pixel_mean=None):
+    def normalize(self, images, min_bound=-1000, max_bound=4000, pixel_mean=None):
         images = (images - min_bound) / (max_bound - min_bound)
         images[images > 1] = 1.
         images[images < 0] = 0.
@@ -58,6 +58,11 @@ class Image_PreProcessor(object):
             pixel_mean = images.mean()
         image = images - pixel_mean
         return images.mean(), np.array(image, dtype=np.float32)
+
+    def unNormalizeToPNG(self, image, pixel_mean, min_bound=-1000, max_bound=4000):
+        image = image + pixel_mean
+        image = image * (max_bound - min_bound) / max_bound * 255
+        return np.array(image, dtype=np.uint8)
 
     def find_dicom_Countour(self, binary_image):
         if binary_image.dtype != np.uint8:
