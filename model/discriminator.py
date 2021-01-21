@@ -43,6 +43,10 @@ class Discriminator:
         model = Model(inputs, result, name=self.name)
         return model
 
+    def print_vars(self):
+        print('\n {} variables:'.format(self.name))
+        for var in self.model.variables:
+            print(var.name)
 
 
 class ReuseLayer(layers.Layer):

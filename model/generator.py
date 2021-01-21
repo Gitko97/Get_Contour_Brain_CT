@@ -67,6 +67,11 @@ class Generator:
     # def trainModel(self, input_data):
     #     return self.model.predict(input_data)
 
+    def print_vars(self):
+        print('\n {} variables:'.format(self.name))
+        for var in self.model.variables:
+            print(var.name)
+
     def summary(self):
         return self.model.summary()
 
