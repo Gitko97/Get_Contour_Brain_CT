@@ -7,8 +7,9 @@ class FileInOut(object):
     def __init__(self, file_extension):
         self.file_extension = file_extension
         self.ct_regex = re.compile(r"S.*CT.*")
-        self.mr_regex = re.compile(r"S.*[GD|MRI].*")
-
+        # self.mr_regex = re.compile(r"S.*{GD|MRI}.*")
+        self.mr_regex_GD = re.compile(r"S.*_GD_.*")
+        self.mr_regex_MRI = re.compile(r"S.*_MRI_.*")
 
     def search(self, root_directory):
         try:
@@ -16,7 +17,7 @@ class FileInOut(object):
             for (path, dir, files) in os.walk(root_directory):
                 for filename in files:
                     ext = os.path.splitext(filename)[-1]
-                    if ext == self.file_extension and (self.ct_regex.search(filename) or self.mr_regex.search(filename)):
+                    if ext == self.file_extension and (self.ct_regex.search(filename) or self.mr_regex_GD.search(filename)):
                         file_list.append([path, filename])
             return file_list
         except PermissionError:
@@ -47,7 +48,7 @@ class FileInOut(object):
             for (path, dir, files) in os.walk(root_directory):
                 for filename in files:
                     ext = os.path.splitext(filename)[-1]
-                    if ext == self.file_extension and (self.mr_regex.search(filename)):
+                    if ext == self.file_extension and (self.mr_regex_GD.search(filename)):
                         file_list.append([path, filename])
             return file_list
         except PermissionError:

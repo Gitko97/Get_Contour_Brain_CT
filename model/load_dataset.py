@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 from file.file_in_out import FileInOut
 from image_utils.preprocessor import Image_PreProcessor
@@ -10,7 +11,7 @@ class LoadDataSet:
         fileIO = FileInOut('.dcm')
         self.input_shape = input_shape
         self.ct_paths = fileIO.find_ct_files(root_directory)
-        self.mr_paths = fileIO.find_mr_files(root_directory)[0:np.shape(self.ct_paths)[0]]
+        self.mr_paths = fileIO.find_mr_files(root_directory)
         if np.shape(self.ct_paths)[0] > np.shape(self.mr_paths)[0]:
             self.ct_paths = self.ct_paths[0: np.shape(self.mr_paths)[0]]
         else:
@@ -29,16 +30,15 @@ class LoadDataSet:
         print("MR/CT images Changed To HU pixels")
 
         print("MR/CT images start normalizing")
-        _, changed_ct = self.image_preprocessor.normalize(changed_ct,min_bound=-1000, max_bound=2000, pixel_mean=0.25)
+        _, changed_ct = self.image_preprocessor.normalize(changed_ct,min_bound=-1000, max_bound=4000, pixel_mean=0.25)
         _, changed_mr = self.image_preprocessor.normalize(changed_mr,pixel_mean=0.5)
 
-        augumentation_ct = self.data_augumentation(changed_ct)
-        augumentation_mr = self.data_augumentation(changed_mr)
-
-        ct_data = np.append(changed_ct, augumentation_ct, axis=0)
-        print(np.shape(ct_data))
-        mr_data = np.append(changed_mr, augumentation_mr, axis=0)
-        return ct_data, mr_data
+        # augumentation_ct = self.data_augumentation(changed_ct)
+        # augumentation_mr = self.data_augumentation(changed_mr)
+        #
+        # ct_data = np.append(changed_ct, augumentation_ct, axis=0)
+        # mr_data = np.append(changed_mr, augumentation_mr, axis=0)
+        return changed_ct, changed_mr
 
     def data_augumentation(self, data):
         seq = iaa.Sequential([
