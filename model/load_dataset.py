@@ -31,7 +31,7 @@ class LoadDataSet:
 
         print("MR/CT images start normalizing")
         _, changed_ct = self.image_preprocessor.normalize(changed_ct,min_bound=-1000, max_bound=4000, pixel_mean=0.25)
-        _, changed_mr = self.image_preprocessor.normalize(changed_mr,pixel_mean=0.5)
+        _, changed_mr = self.image_preprocessor.normalize(changed_mr,min_bound=-10, max_bound=2000,pixel_mean=0.25)
 
         # augumentation_ct = self.data_augumentation(changed_ct)
         # augumentation_mr = self.data_augumentation(changed_mr)

@@ -50,8 +50,8 @@ class GANMonitor(keras.callbacks.Callback):
         for i, index in enumerate(np.random.choice(self.test_dataset_num, self.num_img, replace=False)):
             img = self.test_dataset[index].reshape((1,) + self.test_dataset[index].shape)
             prediction = self.gen_G(tf.convert_to_tensor(img))[0].numpy()
-            prediction = self.arrayToPng(prediction, 0.25)
-            img = self.arrayToPng(img[0], 0.25)
+            prediction = self.arrayToPng(prediction,min_bound=-10, max_bound=2000,pixel_mean=0.25)
+            img = self.arrayToPng(img[0],min_bound=-1000, max_bound=4000, pixel_mean=0.25)
             prediction = np.array(keras.preprocessing.image.array_to_img(prediction))
             img = np.array(keras.preprocessing.image.array_to_img(img))
             result = cv2.hconcat([img, prediction])
